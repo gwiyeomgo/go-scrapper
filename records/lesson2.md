@@ -149,3 +149,37 @@ func main() {
 `totalLength, _ := lenAndUpper("test")` 처럼
 go는 `_` 을 사용해서 값을 무시 할 수 있다.(컴파일러가 값을 무시한다)
 
+golang은 return 값에 이름을 지정하고
+함수 안에서 해당 이름에 값을 할당 할 수 있다.
+
+### [naked return](https://levelup.gitconnected.com/go-naked-returns-4e2094b598e6)
+return 할 variable을 굳이 명시하지 않아도 return 가능하다
+
+```go
+func lenAndUpper(name string)(length int,upercase string){
+	defer fmt.Println("I'm done")
+	length=len(name)
+	upercase =strings.ToUpper(name)
+	return
+}
+```
+
+
+### defer
+defer는 function이 값을 return하고 나면 실행된다.
+자주쓴다.
+
+```go
+//recover 할떄 코드
+defer func() {
+		if r := recover(); r != nil {
+			logrus.Errorln("Panic: %v", r)
+			os.Exit(1)
+		}
+	}()
+```
+
+```go
+defer client.Close()
+
+```
