@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gwiyeomgo/go-scrapper/accounts"
-	"log"
+	"github.com/gwiyeomgo/go-scrapper/dict"
 	"strings"
 )
 
@@ -27,7 +26,7 @@ func main() {
 	totalLength, upperName := lenAndUpper("test")
 	fmt.Println(totalLength, upperName)
 
-	repeatMe("A", "B", "C", "D", "E")*/
+	repeatMe("A", "B", "C", "D", "E")
 
 	// go 에서 constructor 만드는 방법
 	account := accounts.NewAccount("gwiyeomgo")
@@ -43,5 +42,43 @@ func main() {
 	err := account.Withdraw(20)
 	if err != nil {
 		log.Fatalln(err) // println을 호출하고 프로그램 종료 시킴
+	}
+	//struct 가 갖고있는 method 로 출력
+	fmt.Println("금액:",account.Balance(),"계좌소유자:",account.Owner())
+	//go가 너의 struct 에서 호출하는 method
+	fmt.Println(account) */
+	/*dictionary:=dict.Dictionary{}
+	//dictionary에 값을 추가할 수 있다.
+	dictionary["hello"]="hello"
+	fmt.Println(dictionary)*/
+	/*dictionary:=dict.Dictionary{"first":"Hello"}
+	//fmt.Println(dictionary["first"])
+	*/
+	dictionary := dict.Dictionary{}
+	/*word := "hello"
+	definition:="Greeting"*/
+	/*err := dictionary.Add(word,definition)
+	if err != nil {
+		fmt.Println(err)
+	}
+	result,_ :=dictionary.Search(word)
+	fmt.Println("결과",result)
+	err2 := dictionary.Add(word,definition)
+	if err2 != nil {
+		fmt.Println(err2)
+	}*/
+	baseWord := "hello"
+	definition := "Greeting"
+	dictionary.Add(baseWord, definition)
+	err := dictionary.Update(baseWord, "Second")
+	if err != nil {
+		fmt.Println(err)
+	}
+	word, _ := dictionary.Search(baseWord)
+	fmt.Println("존재하니?", word)
+	dictionary.Delete(baseWord)
+	_, err2 := dictionary.Search(baseWord)
+	if err2 != nil {
+		fmt.Println(err2)
 	}
 }

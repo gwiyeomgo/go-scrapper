@@ -1,6 +1,9 @@
 package accounts
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type Account struct {
 	owner   string
@@ -61,4 +64,21 @@ func (a *Account) Withdraw(amount int) error {
 	//-라면 출금하면 안되도록
 	//error handling 해야 한다
 	// nil 은 뭐지? error 는 error 와 nil 있으며 이것은 javascript none 과 같다
+}
+
+// ChangeOwner of the account
+func (a Account) ChangeOwner(newOwner string) {
+	a.owner = newOwner
+}
+
+//struct를 복사한 값을 return
+//Owner of the account
+func (a Account) Owner() string {
+	return a.owner
+}
+
+//go가 struct 에서 자동적으로 호출해 주는 메서드
+func (a Account) String() string {
+	//string 으로 return
+	return fmt.Sprint("금액: ", a.Balance(), " 계좌 소유주: ", a.Owner())
 }
