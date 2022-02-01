@@ -183,3 +183,150 @@ defer func() {
 defer client.Close()
 
 ```
+
+
+# for,range,...args
+
+``` go
+func superAdd(numbers ...int) int {
+	total := 0
+	for _,number := range numbers{
+		//for index,number := range numbers{
+			total +=number
+	}
+	return total
+}
+
+func main(){
+	total := superAdd(1,2,3,4,5,6)
+	fmt.Println(total)
+}
+```
+
+``` go
+func canIDrink(age int) bool {
+	//variable experssion
+	if koreanAge := age +2 ;koreanAge < 18 {
+	//if age <18 {
+		return false
+	}
+	return true
+}
+```
+
+# Switch
+
+``` go
+     switch koreanAge := age +2;koreanAge {
+	//switch age {
+	case 10:
+		return false
+	case 18:
+		return true
+	}
+```
+
+switch를 사용하면 if-else 난무하는 경우를 피할 수 있다
+
+### Pointers
+
+``` go
+func main (){
+	a := 2
+	b := a
+	a = 10
+	fmt.Println(a,b) //출력값은 10 2
+	fmt.Println(&a,&b) //메모리 주소를 출력한다
+}
+```
+
+``` go
+func main (){
+	a := 2
+	b := &a
+	a = 10
+	fmt.Println(&a,b)  //같은 메모리 주소를 출력한다
+	fmt.Println(a,*b)  //출력값은 10 10
+}
+```
+
+``` go
+func main (){
+	a := 2
+	b := &a //a의 주소를 저장
+	fmt.Println(*b) // 메모리를 통해 주소의 값을 보고 싶을 떄
+	*b = 20 //b는 a의 주소와 연결되어있기 때문에
+	fmt.Println(a)  // 출력값은 20
+}
+```
+
+## Arrays and Slices
+
+go에서 array를 만들때는 크기를 정해줘야 한다.
+
+``` go
+	names := [3]string{"a","b"}
+	names[2] = "c"
+```
+
+array의 크기에 제한없이 요소를 추가 하고 싶을때는 어떻게 하지?
+이떄 data type = slice 쓴다
+slice는 기본적으로 array 이지만 length가 없다
+slice는 item을 추가할때 append()라 불리는 function을 사용한다
+append()는 새로운 값이 추가된 slice를 return한다
+
+``` go
+	names := []string{"a","b"}
+	//append(slice,추가할 item)
+	names = append(names,"c")
+```
+
+### map
+
+go의 map은 javascript 의 map과 약간 비슷하다
+완전히 똑같지는 않다
+character 형태의 map을 생성하기 위해서 해야 할 것은
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+ //map[key]value{} 형태로 data type 써준다
+ test := map[string]string{"name": "test", "age": "12"}
+ fmt.Print(test)
+ //map도 rage를 이용해서 반복문을 이용할 수 있따
+ for key,value := range test {
+ 	fmt.Println(key,value)
+ }
+}
+```
+
+
+### struct
+
+struct 는 object 와 비슷하면서 map보다 좀 더 유연한게 특징이다
+
+```go
+package main
+
+import "fmt"
+
+type person struct {
+ name    string
+ age     int
+ favFood []string
+}
+
+func main() {
+ favFood := []string{"apple", "ramen"}
+ //test := person{"test", 13, favFood}
+ //하지만 위 코드처럼 쓴다면 명확하게 보이지 않기 때문에
+ //value가 어떤 key값인지 알 수 없다
+ //그래서 아래처럼 key 도 같이 써주는 것이 더 명확하다
+ test := person {name:"test",age:19,favFood:favFood}
+ fmt.Print(test)
+
+}
+```
