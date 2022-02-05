@@ -178,7 +178,7 @@ func sexyCount(person string) {
 	return nil
 }*/
 
-var baseUrl string = "https://kr.indeed.com/jobs?q=go&limit=10"
+var baseUrl string = "https://kr.indeed.com/jobs?q=go&limit=50"
 
 type extractedJob struct {
 	id       string
@@ -235,7 +235,7 @@ func getPage(page int) []extractedJob {
 	var jobs []extractedJob
 	//	pageUrl := baseUrl +"&stat=" +page * 50
 	//string 과 int 를 같이 쓰려면 정수를 string으로 바꾸는 strconv.Itoa 를 쓴다
-	pageUrl := baseUrl + "&stat=" + strconv.Itoa(page*10)
+	pageUrl := baseUrl + "&stat=" + strconv.Itoa(page*50)
 	res, err := http.Get(pageUrl)
 	checkErr(err)
 	checkCode(res)
