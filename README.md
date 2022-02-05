@@ -40,3 +40,6 @@ go의 빠른 속도*
 extractJob 에 gorotine이 종료되면 getPage로 채널을 전달
 getPage가 실행이 종료되면 main 함수로 채널을 전송
 (getPage와 main 사이에 마지막 goroutine만들기)
+
+# echo를 사용해서 서버 만들기
+
