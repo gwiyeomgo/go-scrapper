@@ -1,9 +1,14 @@
 package main
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
+	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -104,7 +109,7 @@ type requestResult struct {
 	status string
 }
 
-func main() {
+/*func main() {
 	results := make(map[string]string)
 	c := make(chan requestResult)
 	//프로그램이 끝나는 시간은
@@ -126,7 +131,7 @@ func main() {
 	for url, status := range results {
 		fmt.Println(url, status)
 	}
-}
+}*/
 
 //만약 channel로 연결된 함수에
 /*func hitUrl(url string ,c chan result)  {
@@ -172,3 +177,139 @@ func sexyCount(person string) {
 	}
 	return nil
 }*/
+
+var baseUrl string = "https://kr.indeed.com/jobs?q=go&limit=10"
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	company  string
+	summary  string
+}
+
+//https://github.com/PuerkitoBio/goquery 를 사용해서 html 의 내부를 들여다볼 수 있게 해준다
+func main() {
+	var jobs []extractedJob
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		getPage(i)
+		extractedJobs := getPage(i)
+		//2개 배열을 합친다
+		//배열안에 넣은거 아님
+		jobs = append(jobs, extractedJobs...)
+	}
+	writeJob(jobs)
+}
+
+//https://pkg.go.dev/encoding/csv
+// []extractedJob 을 csv 파일로 변환
+func writeJob(jobs []extractedJob) {
+	//파일을 생성한다
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+	w := csv.NewWriter(file)
+	//w.Flush() 함수가 끝나는 시점에 파일에 데이터를 입력하는 함수
+	defer w.Flush()
+
+	headers := []string{
+		"Link",
+		"Title",
+		"Location",
+		"Company",
+		"Summary",
+	}
+	//headers 내용으로 파일이 만들어진다.
+	err = w.Write(headers)
+	checkErr(err)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.company, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
+}
+
+//특정 페이지 정보를 가져온다
+func getPage(page int) []extractedJob {
+	var jobs []extractedJob
+	//	pageUrl := baseUrl +"&stat=" +page * 50
+	//string 과 int 를 같이 쓰려면 정수를 string으로 바꾸는 strconv.Itoa 를 쓴다
+	pageUrl := baseUrl + "&stat=" + strconv.Itoa(page*10)
+	res, err := http.Get(pageUrl)
+	checkErr(err)
+	checkCode(res)
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	checkErr(err)
+	//20220205 기준
+	//a 태그의 data-jk 값을 가져온다.
+	searchCards := doc.Find("#mosaic-provider-jobcards")
+	searchCards.Find(".tapItem").Each(func(i int, card *goquery.Selection) {
+		job := extractJob(card)
+		//추출된 struct 를 배열에 요소로 추가하고 있다.
+		jobs = append(jobs, job)
+	})
+	return jobs
+}
+
+func extractJob(card *goquery.Selection) extractedJob {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find(".jobTitle>span").Text())
+	location := cleanString(card.Find(".companyLocation").Text())
+	company := cleanString(card.Find(".companyName").Text())
+	summary := cleanString(card.Find(".job-snippet").Text())
+	return extractedJob{id: id, title: title, location: location, company: company, summary: summary}
+}
+
+//전체 웹사이트 페이지를 가져온다
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseUrl) //resp *Response
+	checkErr(err)
+	checkCode(res)
+
+	//res.Body 는 기본적으로 byte인데,입력과 출력이야 (io)
+	//그래서 res.Body를 닫아야 한다
+	//getPages 함수가 끝났을때
+	//아래처럼 쓴다면 메모리가 새어나가는 걸 막을 수 있다
+	defer res.Body.Close()
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+//http.Get 의 반환 타입은 *Response 이다
+//따라서 checkCode의 매개변수의 타입을 아래와 같이 지정한다.
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+func cleanString(str string) string {
+	//golang strings
+	//공백을지우고 모든 단어를 분리된 글자로 만드는 것
+	//Fields 가 string 으로 된 배열을 반환
+	//모든 공백이 제거됨 글자만 배열에
+	//또한 Join을 사용한다
+	//"hello" "a" "b" => hello a v
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
+}
